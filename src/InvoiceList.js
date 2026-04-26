@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import axios from "axios";
 
 function InvoiceList({ onSelect }) {
@@ -11,14 +11,6 @@ function InvoiceList({ onSelect }) {
   const [toDate, setToDate] = useState("");
   const [sort, setSort] = useState("latest");
   const [gstFilter, setGstFilter] = useState("all");
-
-  useEffect(() => {
-    fetchInvoices();
-  }, []);
-
-  useEffect(() => {
-    applyFilters();
-  }, [search, invoiceNo, fromDate, toDate, sort, gstFilter, invoices]);
 
   // ✅ FETCH INVOICES
   const fetchInvoices = async () => {
@@ -40,8 +32,12 @@ function InvoiceList({ onSelect }) {
     }
   };
 
-  // ✅ FILTER LOGIC
-  const applyFilters = () => {
+  useEffect(() => {
+    fetchInvoices();
+  }, []);
+
+  // ✅ FIXED: useCallback
+  const applyFilters = useCallback(() => {
     let data = [...invoices];
 
     if (search) {
@@ -75,7 +71,12 @@ function InvoiceList({ onSelect }) {
     );
 
     setFiltered(data);
-  };
+  }, [search, invoiceNo, fromDate, toDate, sort, gstFilter, invoices]);
+
+  // ✅ FIXED: dependency
+  useEffect(() => {
+    applyFilters();
+  }, [applyFilters]);
 
   // ❌ DELETE
   const deleteInvoice = async (id) => {
