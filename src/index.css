@@ -1,0 +1,28 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  margin: 0;
+  font-family: Arial;
+}
+
+.invoice-container {
+  width: 794px;
+  margin: auto;
+  border: 2px solid black;
+}
+
+.no-print {
+}
+
+/* PRINT */
+@media print {
+  .no-print {
+    display: none;
+  }
+
+  table, th, td {
+    border: 1px solid black !important;
+  }
+}
