@@ -5,6 +5,9 @@ import Login from "./Login";
 import Dashboard from "./Dashboard";
 import axios from "axios";
 
+// ✅ GLOBAL API (IMPORTANT)
+const API = "https://billing-backend-lfu8.onrender.com";
+
 function App() {
 
   // 🔐 LOGIN
@@ -15,16 +18,16 @@ function App() {
 
   const [billType, setBillType] = useState("gst");
 
-  // ✅ CUSTOMER DETAILS
+  // CUSTOMER DETAILS
   const [customerGST, setCustomerGST] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
   const [customerDL, setCustomerDL] = useState("");
 
-  // ✅ INVOICE DETAILS
+  // INVOICE DETAILS
   const [dueDate, setDueDate] = useState("");
   const [invoiceCustomerName, setInvoiceCustomerName] = useState("");
 
-  // ✅ MAIN DATA
+  // MAIN DATA
   const [data, setData] = useState({
     customer: "",
     date: "",
@@ -48,7 +51,7 @@ function App() {
     return <Login setToken={setToken} />;
   }
 
-  // ✅ SAVE INVOICE
+  // ✅ SAVE INVOICE (FIXED)
   const saveInvoice = async () => {
     try {
       const total = data.items.reduce((sum, item) => {
@@ -63,7 +66,7 @@ function App() {
       }, 0);
 
       const res = await axios.post(
-        "http://127.0.0.1:5000/api/invoices",
+        `${API}/api/invoices`, // ✅ FIXED (NO LOCALHOST)
         {
           ...data,
           customerGST,
@@ -92,20 +95,20 @@ function App() {
     }
   };
 
-  // ✅ GENERATE BILL
+  // GENERATE BILL
   const handleGenerate = async () => {
     const saved = await saveInvoice();
     if (saved) setPage("invoice");
   };
 
-  // 🔄 HANDLE ITEM CHANGE
+  // HANDLE ITEM CHANGE
   const handleChange = (index, field, value) => {
     const updated = [...data.items];
     updated[index][field] = value;
     setData({ ...data, items: updated });
   };
 
-  // ➕ ADD ITEM
+  // ADD ITEM
   const addItem = () => {
     setData({
       ...data,
@@ -125,7 +128,7 @@ function App() {
     });
   };
 
-  // 🔓 LOGOUT
+  // LOGOUT
   const logout = () => {
     localStorage.removeItem("token");
     setToken(null);
@@ -183,7 +186,7 @@ function App() {
 
         <div className="p-6">
 
-          {/* ================= BILLING ================= */}
+          {/* BILLING */}
           {page === "billing" && (
             <div className="bg-white p-6 rounded-xl shadow">
 
@@ -307,23 +310,21 @@ function App() {
             </div>
           )}
 
-          {/* ================= LIST ================= */}
+          {/* LIST */}
           {page === "list" && (
-            <InvoiceList
-              onSelect={(inv) => {
-                setData(inv);
-                setCustomerGST(inv.customerGST || "");
-                setCustomerPhone(inv.customerPhone || "");
-                setCustomerDL(inv.customerDL || "");
-                setDueDate(inv.dueDate || "");
-                setInvoiceCustomerName(inv.invoiceCustomerName || "");
-                setBillType(inv.billType);
-                setPage("invoice");
-              }}
-            />
+            <InvoiceList onSelect={(inv) => {
+              setData(inv);
+              setCustomerGST(inv.customerGST || "");
+              setCustomerPhone(inv.customerPhone || "");
+              setCustomerDL(inv.customerDL || "");
+              setDueDate(inv.dueDate || "");
+              setInvoiceCustomerName(inv.invoiceCustomerName || "");
+              setBillType(inv.billType);
+              setPage("invoice");
+            }} />
           )}
 
-          {/* ================= INVOICE ================= */}
+          {/* INVOICE */}
           {page === "invoice" && (
             <Invoice
               data={data}
@@ -337,7 +338,7 @@ function App() {
             />
           )}
 
-          {/* ================= DASHBOARD ================= */}
+          {/* DASHBOARD */}
           {page === "dashboard" && <Dashboard />}
 
         </div>
