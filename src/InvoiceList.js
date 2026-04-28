@@ -1,9 +1,12 @@
 import { useEffect, useState, useCallback } from "react";
 import axios from "axios";
 
+const API = "https://billing-backend-lfu8.onrender.com";
+
 function InvoiceList({ onSelect }) {
   const [invoices, setInvoices] = useState([]);
   const [filtered, setFiltered] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const [search, setSearch] = useState("");
   const [invoiceNo, setInvoiceNo] = useState("");
@@ -15,20 +18,31 @@ function InvoiceList({ onSelect }) {
   // ✅ FETCH INVOICES
   const fetchInvoices = async () => {
     try {
-      const res = await axios.get(
-        "http://127.0.0.1:5000/api/invoices",
-        {
-          headers: {
-            Authorization: localStorage.getItem("token")
-          }
+      setLoading(true);
+
+      const res = await axios.get(`${API}/api/invoices`, {
+        headers: {
+          Authorization: localStorage.getItem("token") || ""
         }
-      );
+      });
 
       setInvoices(res.data);
       setFiltered(res.data);
+
     } catch (err) {
       console.error(err);
-      alert("Error fetching invoices ❌");
+
+      // 🔐 Auto logout if token expired
+      if (err.response?.status === 401) {
+        alert("Session expired. Please login again.");
+        localStorage.removeItem("token");
+        window.location.reload();
+      } else {
+        alert("Error fetching invoices ❌");
+      }
+
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -36,7 +50,7 @@ function InvoiceList({ onSelect }) {
     fetchInvoices();
   }, []);
 
-  // ✅ FIXED: useCallback
+  // ✅ FILTER LOGIC
   const applyFilters = useCallback(() => {
     let data = [...invoices];
 
@@ -73,36 +87,50 @@ function InvoiceList({ onSelect }) {
     setFiltered(data);
   }, [search, invoiceNo, fromDate, toDate, sort, gstFilter, invoices]);
 
-  // ✅ FIXED: dependency
   useEffect(() => {
     applyFilters();
   }, [applyFilters]);
 
-  // ❌ DELETE
+  // ❌ DELETE INVOICE
   const deleteInvoice = async (id) => {
     if (!window.confirm("Delete this invoice?")) return;
 
     try {
-      await axios.delete(
-        `http://127.0.0.1:5000/api/invoices/${id}`,
-        {
-          headers: {
-            Authorization: localStorage.getItem("token")
-          }
+      await axios.delete(`${API}/api/invoices/${id}`, {
+        headers: {
+          Authorization: localStorage.getItem("token") || ""
         }
-      );
+      });
+
       fetchInvoices();
+
     } catch (err) {
       console.error(err);
-      alert("Error deleting invoice ❌");
+
+      if (err.response?.status === 401) {
+        alert("Session expired. Please login again.");
+        localStorage.removeItem("token");
+        window.location.reload();
+      } else {
+        alert("Error deleting invoice ❌");
+      }
     }
   };
+
+  // ⏳ LOADING UI
+  if (loading) {
+    return (
+      <div style={{ padding: "20px" }}>
+        <h3>Loading invoices...</h3>
+      </div>
+    );
+  }
 
   return (
     <div style={{ padding: "20px" }}>
       <h2>📜 Invoice History</h2>
 
-      {/* 🔍 FILTERS */}
+      {/* FILTERS */}
       <div style={{ marginBottom: "15px", display: "flex", gap: "10px", flexWrap: "wrap" }}>
         <input
           placeholder="Search Customer"
@@ -131,14 +159,8 @@ function InvoiceList({ onSelect }) {
         </select>
       </div>
 
-      {/* 📊 TABLE */}
-      <table
-        style={{
-          width: "100%",
-          borderCollapse: "collapse",
-          background: "#fff"
-        }}
-      >
+      {/* TABLE */}
+      <table style={{ width: "100%", borderCollapse: "collapse", background: "#fff" }}>
         <thead>
           <tr style={{ background: "#f0f0f0" }}>
             <th style={th}>Invoice No</th>
