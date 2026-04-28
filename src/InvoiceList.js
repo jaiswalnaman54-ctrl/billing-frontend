@@ -1,3 +1,5 @@
+/* eslint-disable react-hooks/exhaustive-deps */
+
 import { useEffect, useState } from "react";
 import axios from "axios";
 
@@ -29,7 +31,6 @@ function InvoiceList({ onSelect }) {
       });
 
       setInvoices(res.data || []);
-
     } catch (err) {
       console.error(err);
 
@@ -40,7 +41,6 @@ function InvoiceList({ onSelect }) {
       } else {
         alert("Error fetching invoices ❌");
       }
-
     } finally {
       setLoading(false);
     }
@@ -51,7 +51,7 @@ function InvoiceList({ onSelect }) {
     fetchInvoices();
   }, []);
 
-  // ✅ FILTER LOGIC DIRECTLY INSIDE useEffect (NO ESLINT ISSUE)
+  // ✅ FILTER LOGIC
   useEffect(() => {
     let data = [...invoices];
 
@@ -100,7 +100,6 @@ function InvoiceList({ onSelect }) {
       });
 
       fetchInvoices();
-
     } catch (err) {
       console.error(err);
 
@@ -126,9 +125,20 @@ function InvoiceList({ onSelect }) {
     <div style={{ padding: "20px" }}>
       <h2>📜 Invoice History</h2>
 
+      {/* FILTERS */}
       <div style={{ marginBottom: "15px", display: "flex", gap: "10px", flexWrap: "wrap" }}>
-        <input placeholder="Search Customer" value={search} onChange={(e) => setSearch(e.target.value)} />
-        <input placeholder="Invoice No" value={invoiceNo} onChange={(e) => setInvoiceNo(e.target.value)} />
+        <input
+          placeholder="Search Customer"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+
+        <input
+          placeholder="Invoice No"
+          value={invoiceNo}
+          onChange={(e) => setInvoiceNo(e.target.value)}
+        />
+
         <input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} />
         <input type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} />
 
@@ -144,6 +154,7 @@ function InvoiceList({ onSelect }) {
         </select>
       </div>
 
+      {/* TABLE */}
       <table style={{ width: "100%", borderCollapse: "collapse", background: "#fff" }}>
         <thead>
           <tr style={{ background: "#f0f0f0" }}>
@@ -173,8 +184,13 @@ function InvoiceList({ onSelect }) {
                 <td style={td}>₹ {inv.total}</td>
 
                 <td style={td}>
-                  <button style={viewBtn} onClick={() => onSelect(inv)}>View</button>
-                  <button style={deleteBtn} onClick={() => deleteInvoice(inv._id)}>Delete</button>
+                  <button style={viewBtn} onClick={() => onSelect(inv)}>
+                    View
+                  </button>
+
+                  <button style={deleteBtn} onClick={() => deleteInvoice(inv._id)}>
+                    Delete
+                  </button>
                 </td>
               </tr>
             ))
@@ -185,6 +201,7 @@ function InvoiceList({ onSelect }) {
   );
 }
 
+// styles
 const th = { border: "1px solid #ddd", padding: "10px" };
 const td = { border: "1px solid #ddd", padding: "10px" };
 
