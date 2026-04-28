@@ -15,6 +15,9 @@ function InvoiceList({ onSelect }) {
   const [sort, setSort] = useState("latest");
   const [gstFilter, setGstFilter] = useState("all");
 
+  // ✅ GET TOKEN
+  const getToken = () => localStorage.getItem("token") || "";
+
   // ✅ FETCH INVOICES
   const fetchInvoices = async () => {
     try {
@@ -22,17 +25,16 @@ function InvoiceList({ onSelect }) {
 
       const res = await axios.get(`${API}/api/invoices`, {
         headers: {
-          Authorization: localStorage.getItem("token") || ""
+          Authorization: getToken()
         }
       });
 
-      setInvoices(res.data);
-      setFiltered(res.data);
+      setInvoices(res.data || []);
+      setFiltered(res.data || []);
 
     } catch (err) {
       console.error(err);
 
-      // 🔐 Auto logout if token expired
       if (err.response?.status === 401) {
         alert("Session expired. Please login again.");
         localStorage.removeItem("token");
@@ -50,7 +52,7 @@ function InvoiceList({ onSelect }) {
     fetchInvoices();
   }, []);
 
-  // ✅ FILTER LOGIC
+  // ✅ FILTER LOGIC (MEMOIZED)
   const applyFilters = useCallback(() => {
     let data = [...invoices];
 
@@ -87,6 +89,7 @@ function InvoiceList({ onSelect }) {
     setFiltered(data);
   }, [search, invoiceNo, fromDate, toDate, sort, gstFilter, invoices]);
 
+  // ✅ FIXED ESLINT WARNING
   useEffect(() => {
     applyFilters();
   }, [applyFilters]);
@@ -98,7 +101,7 @@ function InvoiceList({ onSelect }) {
     try {
       await axios.delete(`${API}/api/invoices/${id}`, {
         headers: {
-          Authorization: localStorage.getItem("token") || ""
+          Authorization: getToken()
         }
       });
 
@@ -193,10 +196,7 @@ function InvoiceList({ onSelect }) {
                     View
                   </button>
 
-                  <button
-                    style={deleteBtn}
-                    onClick={() => deleteInvoice(inv._id)}
-                  >
+                  <button style={deleteBtn} onClick={() => deleteInvoice(inv._id)}>
                     Delete
                   </button>
                 </td>
@@ -210,15 +210,8 @@ function InvoiceList({ onSelect }) {
 }
 
 // 🎨 STYLES
-const th = {
-  border: "1px solid #ddd",
-  padding: "10px"
-};
-
-const td = {
-  border: "1px solid #ddd",
-  padding: "10px"
-};
+const th = { border: "1px solid #ddd", padding: "10px" };
+const td = { border: "1px solid #ddd", padding: "10px" };
 
 const viewBtn = {
   background: "#4CAF50",
