@@ -22,6 +22,9 @@ ChartJS.register(
   Legend
 );
 
+// ✅ USE LIVE BACKEND
+const API = "https://billing-backend-lfu8.onrender.com";
+
 function Dashboard() {
   const [invoices, setInvoices] = useState([]);
   const [view, setView] = useState("daily");
@@ -32,17 +35,16 @@ function Dashboard() {
 
   const fetchInvoices = async () => {
     try {
-      const res = await axios.get(
-        "http://127.0.0.1:5000/api/invoices",
-        {
-          headers: {
-            Authorization: localStorage.getItem("token")
-          }
+      const res = await axios.get(`${API}/api/invoices`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`
         }
-      );
-      setInvoices(res.data);
+      });
+
+      setInvoices(res.data || []);
     } catch (err) {
-      console.error(err);
+      console.error("Dashboard Error:", err);
+      alert("Failed to load dashboard ❌");
     }
   };
 
@@ -51,8 +53,9 @@ function Dashboard() {
     const map = {};
 
     invoices.forEach((inv) => {
-      let key;
+      if (!inv.date || !inv.total) return;
 
+      let key;
       const date = new Date(inv.date);
 
       if (view === "daily") {
@@ -92,10 +95,18 @@ function Dashboard() {
       {/* FILTER BUTTONS */}
       <div style={{ marginBottom: "20px" }}>
         <button onClick={() => setView("daily")}>Daily</button>
-        <button onClick={() => setView("weekly")} style={{ marginLeft: "10px" }}>
+
+        <button
+          onClick={() => setView("weekly")}
+          style={{ marginLeft: "10px" }}
+        >
           Weekly
         </button>
-        <button onClick={() => setView("monthly")} style={{ marginLeft: "10px" }}>
+
+        <button
+          onClick={() => setView("monthly")}
+          style={{ marginLeft: "10px" }}
+        >
           Monthly
         </button>
       </div>
