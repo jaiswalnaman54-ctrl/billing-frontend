@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import axios from "axios";
 
 const API = "https://billing-backend-lfu8.onrender.com";
@@ -18,7 +18,7 @@ function InvoiceList({ onSelect }) {
   const getToken = () => localStorage.getItem("token") || "";
 
   // ✅ FETCH INVOICES
-  const fetchInvoices = useCallback(async () => {
+  const fetchInvoices = async () => {
     try {
       setLoading(true);
 
@@ -29,7 +29,6 @@ function InvoiceList({ onSelect }) {
       });
 
       setInvoices(res.data || []);
-      setFiltered(res.data || []);
 
     } catch (err) {
       console.error(err);
@@ -45,15 +44,15 @@ function InvoiceList({ onSelect }) {
     } finally {
       setLoading(false);
     }
-  }, []);
+  };
 
-  // ✅ CALL FETCH
+  // ✅ LOAD DATA
   useEffect(() => {
     fetchInvoices();
-  }, [fetchInvoices]);
+  }, []);
 
-  // ✅ FILTER LOGIC
-  const applyFilters = useCallback(() => {
+  // ✅ FILTER LOGIC DIRECTLY INSIDE useEffect (NO ESLINT ISSUE)
+  useEffect(() => {
     let data = [...invoices];
 
     if (search) {
@@ -88,11 +87,6 @@ function InvoiceList({ onSelect }) {
 
     setFiltered(data);
   }, [search, invoiceNo, fromDate, toDate, sort, gstFilter, invoices]);
-
-  // ✅ APPLY FILTERS
-  useEffect(() => {
-    applyFilters();
-  }, [applyFilters]);
 
   // ❌ DELETE
   const deleteInvoice = async (id) => {
@@ -132,7 +126,6 @@ function InvoiceList({ onSelect }) {
     <div style={{ padding: "20px" }}>
       <h2>📜 Invoice History</h2>
 
-      {/* FILTERS */}
       <div style={{ marginBottom: "15px", display: "flex", gap: "10px", flexWrap: "wrap" }}>
         <input placeholder="Search Customer" value={search} onChange={(e) => setSearch(e.target.value)} />
         <input placeholder="Invoice No" value={invoiceNo} onChange={(e) => setInvoiceNo(e.target.value)} />
@@ -151,7 +144,6 @@ function InvoiceList({ onSelect }) {
         </select>
       </div>
 
-      {/* TABLE */}
       <table style={{ width: "100%", borderCollapse: "collapse", background: "#fff" }}>
         <thead>
           <tr style={{ background: "#f0f0f0" }}>
@@ -193,7 +185,6 @@ function InvoiceList({ onSelect }) {
   );
 }
 
-// styles
 const th = { border: "1px solid #ddd", padding: "10px" };
 const td = { border: "1px solid #ddd", padding: "10px" };
 
