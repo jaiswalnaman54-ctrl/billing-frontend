@@ -15,11 +15,10 @@ function InvoiceList({ onSelect }) {
   const [sort, setSort] = useState("latest");
   const [gstFilter, setGstFilter] = useState("all");
 
-  // ✅ GET TOKEN
   const getToken = () => localStorage.getItem("token") || "";
 
   // ✅ FETCH INVOICES
-  const fetchInvoices = async () => {
+  const fetchInvoices = useCallback(async () => {
     try {
       setLoading(true);
 
@@ -46,13 +45,14 @@ function InvoiceList({ onSelect }) {
     } finally {
       setLoading(false);
     }
-  };
-
-  useEffect(() => {
-    fetchInvoices();
   }, []);
 
-  // ✅ FILTER LOGIC (MEMOIZED)
+  // ✅ CALL FETCH
+  useEffect(() => {
+    fetchInvoices();
+  }, [fetchInvoices]);
+
+  // ✅ FILTER LOGIC
   const applyFilters = useCallback(() => {
     let data = [...invoices];
 
@@ -89,12 +89,12 @@ function InvoiceList({ onSelect }) {
     setFiltered(data);
   }, [search, invoiceNo, fromDate, toDate, sort, gstFilter, invoices]);
 
-  // ✅ FIXED ESLINT WARNING
+  // ✅ APPLY FILTERS
   useEffect(() => {
     applyFilters();
   }, [applyFilters]);
 
-  // ❌ DELETE INVOICE
+  // ❌ DELETE
   const deleteInvoice = async (id) => {
     if (!window.confirm("Delete this invoice?")) return;
 
@@ -120,7 +120,6 @@ function InvoiceList({ onSelect }) {
     }
   };
 
-  // ⏳ LOADING UI
   if (loading) {
     return (
       <div style={{ padding: "20px" }}>
@@ -135,18 +134,8 @@ function InvoiceList({ onSelect }) {
 
       {/* FILTERS */}
       <div style={{ marginBottom: "15px", display: "flex", gap: "10px", flexWrap: "wrap" }}>
-        <input
-          placeholder="Search Customer"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
-
-        <input
-          placeholder="Invoice No"
-          value={invoiceNo}
-          onChange={(e) => setInvoiceNo(e.target.value)}
-        />
-
+        <input placeholder="Search Customer" value={search} onChange={(e) => setSearch(e.target.value)} />
+        <input placeholder="Invoice No" value={invoiceNo} onChange={(e) => setInvoiceNo(e.target.value)} />
         <input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} />
         <input type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} />
 
@@ -192,13 +181,8 @@ function InvoiceList({ onSelect }) {
                 <td style={td}>₹ {inv.total}</td>
 
                 <td style={td}>
-                  <button style={viewBtn} onClick={() => onSelect(inv)}>
-                    View
-                  </button>
-
-                  <button style={deleteBtn} onClick={() => deleteInvoice(inv._id)}>
-                    Delete
-                  </button>
+                  <button style={viewBtn} onClick={() => onSelect(inv)}>View</button>
+                  <button style={deleteBtn} onClick={() => deleteInvoice(inv._id)}>Delete</button>
                 </td>
               </tr>
             ))
@@ -209,7 +193,7 @@ function InvoiceList({ onSelect }) {
   );
 }
 
-// 🎨 STYLES
+// styles
 const th = { border: "1px solid #ddd", padding: "10px" };
 const td = { border: "1px solid #ddd", padding: "10px" };
 
